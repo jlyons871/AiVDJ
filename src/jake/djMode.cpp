@@ -50,6 +50,8 @@ void djMode::update(float depthLow, float depthHigh) {
 	
 	kinect.update();
 
+	bpmTapper.update();
+
 	Zlow = depthLow;
 	Zhigh = depthHigh;
 	
@@ -59,16 +61,21 @@ void djMode::update(float depthLow, float depthHigh) {
 void djMode::draw() {
 	middleX = 320;
 	
-	if(bDrawPointCloud) {
-		easyCam.begin();
-		drawPointCloud();
-		easyCam.end();
-	} 
-	else{
-		easyCam.begin();
-		drawMeshCloud();
-		easyCam.end();
-	}
+	ofSetColor(0);
+    ofDrawBitmapString("Hit b to tap BPM", 50, 20);
+    ofDrawBitmapString("BPM: " + ofToString(bpmTapper.bpm()), 50, 100);
+    bpmTapper.draw(50, 200, 10);
+
+	//if(bDrawPointCloud) {
+	//	easyCam.begin();
+	//	drawPointCloud();
+	//	easyCam.end();
+	//} 
+	//else{
+	//	easyCam.begin();
+	//	drawMeshCloud();
+	//	easyCam.end();
+	//}
 
 }
 
@@ -182,6 +189,10 @@ void djMode::DJkeyPressed (int key) {
 											
 		case 'w':
 			kinect.enableDepthNearValueWhite(!kinect.isDepthNearValueWhite());
+			break;
+
+		case 'b':
+			bpmTapper.tap();
 			break;
 			
 		case 'o':

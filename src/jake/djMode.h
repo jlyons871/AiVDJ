@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "ofxOpenCv.h"
 #include "ofxKinect.h"
+#include "../MSA/MSABPMTapper.h"
 
 // uncomment this to read from two kinects simultaneously
 //#define USE_TWO_KINECTS
@@ -16,6 +17,8 @@ public:
 	void update(float depthLow, float depthHigh);
 	void draw();
 	void exit();
+
+	msa::BPMTapper bpmTapper;
 	
 	void drawPointCloud();
 	void drawMeshCloud();
