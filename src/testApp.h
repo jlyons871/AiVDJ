@@ -52,6 +52,7 @@ class testApp : public ofBaseApp{
 
 		MODE mode;
 		//int nearThresh, int farThresh;
+
 		/*-----------Alex-----------*/
 		physicsMode physics;
 		physicsMode::source::Type sourceType;
@@ -64,7 +65,8 @@ class testApp : public ofBaseApp{
 
 		/*-----------Sound-----------*/
 		void audioIn(float * input, int bufferSize, int nChannels); 
-	
+		void drawVolGraphs();
+
 		vector <float> left;
 		vector <float> right;
 		vector <float> volHistory;
@@ -79,7 +81,5 @@ class testApp : public ofBaseApp{
 
 		ofxUIMovingGraph *audio;
 
-		/*-----------Test Variables-----------*/
-	int r,g,b;
 	
 };

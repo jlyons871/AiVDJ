@@ -17,12 +17,6 @@ void testApp::setup(){
 	ofSetCircleResolution(80);
 	soundStream.listDevices();
 
-	// 0 output channels, 
-	// 2 input channels
-	// 44100 samples per second
-	// 256 samples per buffer
-	// 4 num buffers (latency)
-
 	int bufferSize = 256;
 
 	left.assign(bufferSize, 0.0);
@@ -50,30 +44,34 @@ void testApp::setup(){
 	initRects();
 	ofEnableSmoothing();
 
-	/*--------Kinect-----------*/
-	kinect_dj.setRegistration(true);
-	kinect_dj.init();
-	kinect_dj.init(true); // shows infrared instead of RGB video image
-	kinect_dj.init(false, false); // disable video image (faster fps)
-	kinect_dj.open("B00363262039047B");	// open a kinect using it's unique serial #
-
-	kinect_aud.setRegistration(true);
-	kinect_aud.init();
-	kinect_aud.init(true); // shows infrared instead of RGB video image
-	kinect_aud.init(false, false); // disable video image (faster fps)
-	kinect_aud.open("A00362807781047A");	// open a kinect using it's unique serial #
-
 	/*-------Alex------*/
 	physics.setup();
-	numParticles = 0;
-
+	numParticles = 10;
 	/*-------Jake-------*/
-	DJMODE.setup(&kinect_dj);
+	DJMODE.setup();
+<<<<<<< HEAD
+=======
+	/*-----Melissa-----*/
+	Aud.setup();
 
-	/*------Melissa-----*/
-	//Aud.setup();
+	/*-------Sound------*/
+	ofSetVerticalSync(true);
+	ofSetCircleResolution(80);
+	soundStream.listDevices();
 
+	int bufferSize = 256;
 
+	left.assign(bufferSize, 0.0);
+	right.assign(bufferSize, 0.0);
+	volHistory.assign(400, 0.0);
+	
+	bufferCounter	= 0;
+	drawCounter		= 0;
+	smoothedVol     = 0.0;
+	scaledVol		= 0.0;
+
+	soundStream.setup(this, 0, 2, 44100, bufferSize, 4);
+>>>>>>> Melissa/master
 }
 
 
@@ -82,44 +80,47 @@ void testApp::update(){
 	/*-------Sound------*/
 	//lets scale the vol up to a 0-1 range 
 	scaledVol = ofMap(smoothedVol, 0.0, 0.17, 0.0, 1.0, true);
+<<<<<<< HEAD
 	audio->addPoint(scaledVol*100);
+=======
 
-	/*-------kinect side displays------*/
-	if(drawDJKinect){
-		DJMODE.update(&kinect_dj, DjDepthSliderLow, DjDepthSliderHigh);
+	//lets record the volume into an array
+	volHistory.push_back( scaledVol );
+	
+	//if we are bigger the the size we want to record - lets drop the oldest value
+	if( volHistory.size() >= 400 ){
+		volHistory.erase(volHistory.begin(), volHistory.begin()+1);
+
 	}
-	if(drawAudKinect){
-		//Aud.update();
-	}
+>>>>>>> Melissa/master
 
 	/*-------Modes-----*/
 	switch(mode){
 		case DJ:
-			DJMODE.update(&kinect_dj, DjDepthSliderLow, DjDepthSliderHigh);
+			DJMODE.update(DjDepthSliderLow, DjDepthSliderHigh);
 			break;
 		case AUD:
-			//Aud.update();
+			Aud.update();
 			break;
 		default:
 		case PHYSICS:
 			physics.addParticles(numParticles);
 			physics.update();
 			break;
-	}
+		}
 }
 
 //--------------------------------------------------------------
 void testApp::draw(){
 	ofBackground(cmain);
 
-	//modes
 	if(drawDisplay){
 		switch(mode){
 		case DJ:
-			DJMODE.draw(&kinect_dj);
+			DJMODE.draw();
 			break;
 		case AUD:
-			//Aud.draw();
+			Aud.draw();
 			break;
 		case PHYSICS:{
 			physics.render();
@@ -140,87 +141,37 @@ void testApp::draw(){
 		}
 	}
 
-	//sound
-	drawVolGraphs();
-
 	if(drawDJKinect){
 		ofPushMatrix();
 		ofRect(djRect);
 		ofTranslate(djRect.x, djRect.y);
 		ofPushStyle();
-		kinect_dj.drawDepth(0, 0, djRect.width, djRect.height);
-		kinect_dj.draw(0, 0, djRect.width, djRect.height);
+		DJMODE.kinect.drawDepth(0, 0, djRect.width, djRect.height);
+		DJMODE.kinect.draw(0, 0, djRect.width, djRect.height);
 		ofPopStyle();
 		ofPopMatrix();
 	}
-	//if(drawAudKinect){
-	//	ofPushMatrix();
-	//	ofRect(audRect);
-	//	ofTranslate(audRect.x, audRect.y);
-	//	ofPushStyle();
-	//	kinect_aud.drawDepth(0, 0, audRect.width, audRect.height);
-	//	kinect_aud.draw(0, 0, audRect.width, audRect.height);
-	//	Aud.kinect.drawDepth(0, 0, audRect.width, audRect.height);
-	//	Aud.kinect.draw(0, 0, audRect.width, audRect.height);
-	//	ofPopStyle();
-	//	ofPopMatrix();
-	//}
-
-
+	if(drawAudKinect){
+		ofPushStyle();
+		ofSetColor(white);
+		ofRect(audRect);
+		ofPopStyle();
+	}/* else if(drawAud){
+		ofPushStyle();
+		ofSetColor(ccomp5);
+		
+		Aud.draw();
+		ofPopStyle();
+	}*/
+	
 }
 
-void testApp::drawVolGraphs(){
-	// draw the left channel:
-	float rectWidth = 512;
-	float rectHeight = 150;
-	float spacer = 16;
-
-	ofPushStyle();
-		ofPushMatrix();
-		ofNoFill();
-		ofTranslate(ofGetWidth()- (rectWidth+spacer),ofGetHeight()-(rectHeight*2 + spacer*2), 0);
-			
-		ofSetColor(white);
-		ofDrawBitmapString("Left Channel", 4, 18);
-		
-		ofSetLineWidth(1);	
-		ofRect(0, 0, rectWidth, rectHeight);
-
-		ofSetColor(245, 58, 135);
-		ofSetLineWidth(3);
-					
-			ofBeginShape();
-			for (int i = 0; i < left.size(); i++){
-				ofVertex(i*2, 100 -left[i]*180.0f);
-			}
-			ofEndShape(false);
-
-		ofTranslate(0, rectHeight + spacer, 0);
-			
-		ofSetColor(white);
-		ofDrawBitmapString("Right Channel", 4, 18);
-		
-		ofSetLineWidth(1);	
-		ofRect(0, 0, rectWidth, rectHeight);
-
-		ofSetColor(245, 58, 135);
-		ofSetLineWidth(3);
-					
-			ofBeginShape();
-			for (int i = 0; i < right.size(); i++){
-				ofVertex(i*2, 100 -right[i]*180.0f);
-			}
-			ofEndShape(false);
-			
-		ofPopMatrix();
-	ofPopStyle();
-}
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
 	if(drawDJ){
-		DJMODE.DJkeyPressed(&kinect_dj, key);
+		DJMODE.DJkeyPressed(key);
 	} else if (drawAud) {
-		//Aud.AudkeyPressed(key);
+		Aud.AudkeyPressed(key);
 	}
 	if( key == 's' ){
 		soundStream.start();
@@ -426,8 +377,7 @@ void testApp::exit()
     gui->saveSettings("GUI/guiSettings.xml");     
     delete gui; 
 
-	DJMODE.exit(&kinect_dj);
-//	Aud.exit();
+	//DJ.exit();
 }
 
 //--------------------------------------------------------------
