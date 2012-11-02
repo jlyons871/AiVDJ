@@ -79,7 +79,7 @@ void testApp::update(){
 	/*-------Modes-----*/
 	switch(mode){
 		case DJ:
-			DJMODE.update(DjDepthSliderLow, DjDepthSliderHigh);
+			DJMODE.update(&kinect_dj, DjDepthSliderLow, DjDepthSliderHigh);
 			break;
 		case AUD:
 			//Aud.update();
@@ -99,7 +99,7 @@ void testApp::draw(){
 	if(drawDisplay){
 		switch(mode){
 		case DJ:
-			DJMODE.draw();
+			DJMODE.draw(&kinect_dj);
 			break;
 		case AUD:
 			//Aud.draw();
@@ -149,7 +149,7 @@ void testApp::draw(){
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
 	if(drawDJ){
-		DJMODE.DJkeyPressed(key);
+		DJMODE.DJkeyPressed(&kinect_dj, key);
 	} else if (drawAud) {
 		//Aud.AudkeyPressed(key);
 	}
@@ -357,7 +357,7 @@ void testApp::exit()
     gui->saveSettings("GUI/guiSettings.xml");     
     delete gui; 
 
-	DJMODE.exit();
+	DJMODE.exit(&kinect_dj);
 //	Aud.exit();
 }
 

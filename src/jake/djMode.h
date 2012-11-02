@@ -3,7 +3,7 @@
 #include "ofMain.h"
 #include "ofxOpenCv.h"
 #include "ofxKinect.h"
-#include "../testApp.h"
+//#include "../testApp.h"
 
 // uncomment this to read from two kinects simultaneously
 //#define USE_TWO_KINECTS
