@@ -44,13 +44,26 @@ void testApp::setup(){
 	initRects();
 	ofEnableSmoothing();
 
+	/*--------Kinect-----------*/
+	kinect_dj.setRegistration(true);
+	kinect_dj.init();
+	kinect_dj.init(true); // shows infrared instead of RGB video image
+	kinect_dj.init(false, false); // disable video image (faster fps)
+	kinect_dj.open("B00363262039047B");	// open a kinect using it's unique serial #
+
+	kinect_aud.setRegistration(true);
+	kinect_aud.init();
+	kinect_aud.init(true); // shows infrared instead of RGB video image
+	kinect_aud.init(false, false); // disable video image (faster fps)
+	kinect_aud.open("A00362807781047A");	// open a kinect using it's unique serial #
+
 	/*-------Alex------*/
 	physics.setup();
 	numParticles = 10;
 	/*-------Jake-------*/
-	DJMODE.setup();
+	DJMODE.setup(&kinect_dj);
 	/*-----Melissa-----*/
-	Aud.setup();
+	//Aud.setup();
 
 }
 
@@ -69,7 +82,7 @@ void testApp::update(){
 			DJMODE.update(DjDepthSliderLow, DjDepthSliderHigh);
 			break;
 		case AUD:
-			Aud.update();
+			//Aud.update();
 			break;
 		default:
 		case PHYSICS:
@@ -89,7 +102,7 @@ void testApp::draw(){
 			DJMODE.draw();
 			break;
 		case AUD:
-			Aud.draw();
+			//Aud.draw();
 			break;
 		case PHYSICS:{
 			physics.render();
@@ -115,8 +128,8 @@ void testApp::draw(){
 		ofRect(djRect);
 		ofTranslate(djRect.x, djRect.y);
 		ofPushStyle();
-		DJMODE.kinect.drawDepth(0, 0, djRect.width, djRect.height);
-		DJMODE.kinect.draw(0, 0, djRect.width, djRect.height);
+		kinect_dj.drawDepth(0, 0, djRect.width, djRect.height);
+		kinect_dj.draw(0, 0, djRect.width, djRect.height);
 		ofPopStyle();
 		ofPopMatrix();
 	}
@@ -125,8 +138,8 @@ void testApp::draw(){
 		ofRect(audRect);
 		ofTranslate(audRect.x, audRect.y);
 		ofPushStyle();
-		DJMODE.kinect.drawDepth(0, 0, audRect.width, audRect.height);
-		DJMODE.kinect.draw(0, 0, audRect.width, audRect.height);
+		kinect_aud.drawDepth(0, 0, audRect.width, audRect.height);
+		kinect_aud.draw(0, 0, audRect.width, audRect.height);
 		ofPopStyle();
 		ofPopMatrix();
 	}
@@ -138,7 +151,7 @@ void testApp::keyPressed(int key){
 	if(drawDJ){
 		DJMODE.DJkeyPressed(key);
 	} else if (drawAud) {
-		Aud.AudkeyPressed(key);
+		//Aud.AudkeyPressed(key);
 	}
 	if( key == 's' ){
 		soundStream.start();
@@ -345,7 +358,7 @@ void testApp::exit()
     delete gui; 
 
 	DJMODE.exit();
-	Aud.exit();
+//	Aud.exit();
 }
 
 //--------------------------------------------------------------

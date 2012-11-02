@@ -20,7 +20,7 @@ public:
 	audMode();
 	~audMode();
 	
-	void setup();
+	void setup(ofxKinect *myKinect);
 	void update();
 	void draw();
 	void exit();
@@ -36,7 +36,7 @@ public:
 	void AudwindowResized(int, int);
 	
 	
-	ofxKinect kinect;
+	ofxKinect *kinect;
 	
 	ofxCvGrayscaleImage grayImage; // grayscale depth image
 	ofxCvGrayscaleImage grayThreshNear; // the near thresholded image

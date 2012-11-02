@@ -14,7 +14,7 @@ audMode::~audMode(){
 }
 
 
-void audMode::setup() {
+void audMode::setup(ofxKinect *myKinect) {
 	ofSetLogLevel(OF_LOG_VERBOSE);
 	
 	c1.setHex(0xF9CDAD); //butternut squash
@@ -25,18 +25,20 @@ void audMode::setup() {
 	alpha = 255;
 	
 	//
-	//// enable depth->video image calibration
-	//kinect.setRegistration(true);
+	////enable depth->video image calibration
+	////kinect->setRegistration(true);
  //   
-	//kinect.init();
-	//kinect.init(true); // shows infrared instead of RGB video image
-	//kinect.init(false, false); // disable video image (faster fps)
-	
-	kinect.open();		// opens first available kinect
-	
-	grayImage.allocate(kinect.width, kinect.height);
-	grayThreshNear.allocate(kinect.width, kinect.height);
-	grayThreshFar.allocate(kinect.width, kinect.height);
+	//kinect->init();
+	//kinect->init(true); // shows infrared instead of RGB video image
+	//kinect->init(false, false); // disable video image (faster fps)
+	//
+	//kinect->open("A00362807781047A");		// opens first available kinect
+	////kinect->open();
+	*kinect = *myKinect;
+
+	grayImage.allocate(kinect->width, kinect->height);
+	grayThreshNear.allocate(kinect->width, kinect->height);
+	grayThreshFar.allocate(kinect->width, kinect->height);
 	
 	nearThreshold = 255;
 	farThreshold = 255;
@@ -46,7 +48,7 @@ void audMode::setup() {
 	
 	// zero the tilt on startup
 	angle = 20;
-	kinect.setCameraTiltAngle(angle);
+	kinect->setCameraTiltAngle(angle);
 	
 	// start from the front
 	bDrawPointCloud = false;
@@ -57,13 +59,13 @@ void audMode::update() {
 	
 	ofBackground(100, 100, 100);
 	
-	kinect.update();
+	kinect->update();
 	
 	// there is a new frame and we are connected
-	if(kinect.isFrameNew()) {
+	if(kinect->isFrameNew()) {
 		
 		// load grayscale depth image from the kinect source
-		grayImage.setFromPixels(kinect.getDepthPixels(), kinect.width, kinect.height);
+		grayImage.setFromPixels(kinect->getDepthPixels(), kinect->width, kinect->height);
 		
 		// we do two thresholds - one for the far plane and one for the near plane
 		// we then do a cvAnd to get the pixels which are a union of the two thresholds
@@ -105,12 +107,12 @@ void audMode::drawPointCloud() {
 	int step = 3;
 	for(int y = 0; y < h; y += step) {
 		for(int x = 0; x < w; x += step) {
-			if(kinect.getDistanceAt(x, y) > 0) {
+			if(kinect->getDistanceAt(x, y) > 0) {
 				mesh_r.addColor(ofColor(255, 255, 255, alpha));
-				mesh_r.addVertex(kinect.getWorldCoordinateAt(x, y));
+				mesh_r.addVertex(kinect->getWorldCoordinateAt(x, y));
 				mesh.addColor(ofColor(230, 230, 230, alpha));
-				mesh.addVertex(kinect.getWorldCoordinateAt(x, y));
-				ofVec3f tmp = kinect.getWorldCoordinateAt(x, y);
+				mesh.addVertex(kinect->getWorldCoordinateAt(x, y));
+				ofVec3f tmp = kinect->getWorldCoordinateAt(x, y);
 				printf("%d %d %d\n", tmp.x, tmp.y, tmp.z );
 			}
 		}
@@ -164,8 +166,8 @@ ofColor audMode::getColor(int x) {
 
 //--------------------------------------------------------------
 void audMode::exit() {
-	kinect.setCameraTiltAngle(0); // zero the tilt on exit
-	kinect.close();
+	kinect->setCameraTiltAngle(0); // zero the tilt on exit
+	kinect->close();
 	
 }
 
@@ -203,29 +205,29 @@ void audMode::AudkeyPressed (int key) {
 			break;
 			
 		case 'w':
-			kinect.enableDepthNearValueWhite(!kinect.isDepthNearValueWhite());
+			kinect->enableDepthNearValueWhite(!kinect->isDepthNearValueWhite());
 			break;
 			
 		case 'o':
-			kinect.setCameraTiltAngle(angle); // go back to prev tilt
-			kinect.open();
+			kinect->setCameraTiltAngle(angle); // go back to prev tilt
+			kinect->open();
 			break;
 			
 		case 'c':
-			kinect.setCameraTiltAngle(0); // zero the tilt
-			kinect.close();
+			kinect->setCameraTiltAngle(0); // zero the tilt
+			kinect->close();
 			break;
 			
 		case OF_KEY_UP:
 			angle++;
 			if(angle>30) angle=30;
-			kinect.setCameraTiltAngle(angle);
+			kinect->setCameraTiltAngle(angle);
 			break;
 			
 		case OF_KEY_DOWN:
 			angle--;
 			if(angle<-30) angle=-30;
-			kinect.setCameraTiltAngle(angle);
+			kinect->setCameraTiltAngle(angle);
 			break;
 	}
 }

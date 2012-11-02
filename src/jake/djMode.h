@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "ofxOpenCv.h"
 #include "ofxKinect.h"
+#include "../testApp.h"
 
 // uncomment this to read from two kinects simultaneously
 //#define USE_TWO_KINECTS
@@ -12,16 +13,16 @@ public:
 	djMode();
 	~djMode();
 	
-	void setup();
-	void update(float depthLow, float depthHigh);
-	void draw();
-	void exit();
+	void setup(ofxKinect *kinect);
+	void update(ofxKinect *kinect, float depthLow, float depthHigh);
+	void draw(ofxKinect *kinect);
+	void exit(ofxKinect *kinect);
 	
-	void drawPointCloud();
-	void drawMeshCloud();
-	void testDraw();
+	void drawPointCloud(ofxKinect *kinect);
+	void drawMeshCloud(ofxKinect *kinect);
+	void testDraw(ofxKinect *kinect);
 
-	void DJkeyPressed(int key);
+	void DJkeyPressed(ofxKinect *kinect, int key);
 	void DJmouseDragged(int x, int y, int button);
 	void DJmousePressed(int x, int y, int button);
 	void DJmouseReleased(int x, int y, int button);
@@ -40,7 +41,7 @@ public:
 	ofVec3f maxY;
 	int middleX;
 
-	ofxKinect kinect;
+	//ofxKinect kinect;
 	
 	ofxCvColorImage colorImg;
 	

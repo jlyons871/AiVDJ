@@ -2,10 +2,11 @@
 
 #include "ofMain.h"
 #include "ofxUI.h"
+#include "ofxKinect.h"
 
 #include "alex/physicsMode.h"
 #include "jake/djMode.h"
-#include "melissa/audMode.h"
+//#include "melissa/audMode.h"
 
 class testApp : public ofBaseApp{
 
@@ -13,6 +14,9 @@ class testApp : public ofBaseApp{
 		void setup();
 		void update();
 		void draw();
+
+		ofxKinect kinect_aud;
+		ofxKinect kinect_dj;
 
 		void keyPressed  (int key);
 		void keyReleased(int key);
@@ -55,7 +59,7 @@ class testApp : public ofBaseApp{
 		/*-----------Jake-----------*/
 		djMode DJMODE;
 		/*-----------Melissa-----------*/
-		audMode Aud;
+		//audMode Aud;
 
 
 		/*-----------Sound-----------*/

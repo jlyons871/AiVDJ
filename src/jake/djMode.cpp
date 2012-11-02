@@ -15,41 +15,42 @@ djMode::~djMode(){
 }
 
 
-void djMode::setup() {
+void djMode::setup(ofxKinect *kinect) {
 	ofSetLogLevel(OF_LOG_VERBOSE);
 	
-	// enable depth->video image calibration
-	kinect.setRegistration(true);
-    
-	kinect.init();
-	kinect.init(true); // shows infrared instead of RGB video image
-	kinect.init(false, false); // disable video image (faster fps)
+	//// enable depth->video image calibration
+	//kinect->setRegistration(true);
+ //   
+	//kinect->init();
+	//kinect->init(true); // shows infrared instead of RGB video image
+	//kinect->init(false, false); // disable video image (faster fps)
+	//
+	////kinect->open();		// opens first available kinect
+	////kinect->open(1);	// open a kinect by id, starting with 0 (sorted by serial # lexicographically))
+	//kinect->open("B00363262039047B");	// open a kinect using it's unique serial #
+	//*kinect = *mykinect;
 	
-	//kinect.open();		// opens first available kinect
-	//kinect.open(1);	// open a kinect by id, starting with 0 (sorted by serial # lexicographically))
-	kinect.open("B00363262039047B");	// open a kinect using it's unique serial #
-	
-	colorImg.allocate(kinect.width, kinect.height);
+	colorImg.allocate(kinect->width, kinect->height);
 	
 	ofSetFrameRate(60);
 	
 	// zero the tilt on startup
 	angle = 20;
-	kinect.setCameraTiltAngle(angle);
+	kinect->setCameraTiltAngle(angle);
 	
 	// start from the front
 	bDrawMeshCloud = true;
 	bDrawPointCloud = false;
-	printf("serial:'%s'", kinect.getSerial());
+	printf("serial:'%s'", kinect->getSerial());
 	
 }
 
 //--------------------------------------------------------------
-void djMode::update(float depthLow, float depthHigh) {
+void djMode::update(ofxKinect *kinect, float depthLow, float depthHigh) {
 	
 	ofBackground(100, 100, 100);
 	
-	kinect.update();
+	kinect->update();
 
 	Zlow = depthLow;
 	Zhigh = depthHigh;
@@ -58,21 +59,21 @@ void djMode::update(float depthLow, float depthHigh) {
 }
 
 //--------------------------------------------------------------
-void djMode::draw() {
+void djMode::draw(ofxKinect *kinect) {
 	middleX = 320;
 	
 	easyCam.begin();
 	if(bDrawPointCloud) {
-		drawPointCloud();
+		drawPointCloud(kinect);
 	} 
 	else{
-		drawMeshCloud();
+		drawMeshCloud(kinect);
 	}
 	easyCam.end();
 
 }
 
-void djMode::drawPointCloud() {
+void djMode::drawPointCloud(ofxKinect *kinect) {
 	maxY = ofVec3f(0,0,0);
 	ofBackground(95, 100);
 
@@ -88,19 +89,19 @@ void djMode::drawPointCloud() {
 	int step = 10;
 	for(int y = ofRandom(0, 10); y < h; y += step) {
 		for(int x = ofRandom(0, 10); x < w; x += step) {
-			if(kinect.getDistanceAt(x, y) > 0) {
-				if (kinect.getWorldCoordinateAt(x, y).z < Zhigh && kinect.getWorldCoordinateAt(x, y).z > Zlow){	
-					if (kinect.getWorldCoordinateAt(x, y).y > maxY.y){maxY= kinect.getWorldCoordinateAt(x, y);}
+			if(kinect->getDistanceAt(x, y) > 0) {
+				if (kinect->getWorldCoordinateAt(x, y).z < Zhigh && kinect->getWorldCoordinateAt(x, y).z > Zlow){	
+					if (kinect->getWorldCoordinateAt(x, y).y > maxY.y){maxY= kinect->getWorldCoordinateAt(x, y);}
 						ofPushMatrix();
 						// the projected points are 'upside down' and 'backwards' 
 						ofScale(1, -1, -1);
 						ofTranslate(0, 0, -1000); // center the points a bit
-						ofSetColor(rand1, rand2, kinect.getWorldCoordinateAt(x, y).z / (Zhigh/255));
+						ofSetColor(rand1, rand2, kinect->getWorldCoordinateAt(x, y).z / (Zhigh/255));
 
 						DJpoint newpoint;
-						newpoint.x = kinect.getWorldCoordinateAt(x, y).x;
-						newpoint.y = kinect.getWorldCoordinateAt(x, y).y;
-						newpoint.z = kinect.getWorldCoordinateAt(x, y).z;
+						newpoint.x = kinect->getWorldCoordinateAt(x, y).x;
+						newpoint.y = kinect->getWorldCoordinateAt(x, y).y;
+						newpoint.z = kinect->getWorldCoordinateAt(x, y).z;
 						DJpoints.push_back(newpoint);
 
 						ofSphere(newpoint.x, newpoint.y, newpoint.z, 10);
@@ -130,7 +131,7 @@ void djMode::drawPointCloud() {
 	DJpoints.clear();
 }
 
-void djMode::drawMeshCloud() {
+void djMode::drawMeshCloud(ofxKinect *kinect) {
 	int w = 640;
 	int h = 480;
 	ofMesh mesh;
@@ -140,10 +141,10 @@ void djMode::drawMeshCloud() {
 	int rand1 = ofRandom(128.0, 255.0);
 	for(int y = 0; y < h; y += step) {
 		for(int x = 0; x < w; x += step) {
-			if(kinect.getDistanceAt(x, y) > 0) {
-				if (kinect.getWorldCoordinateAt(x, y).z < Zhigh && kinect.getWorldCoordinateAt(x, y).z > Zlow){	
-					mesh.addColor(ofColor(rand1, 0, (kinect.getWorldCoordinateAt(x, y).z*-1) / (Zhigh/255) + 128));
-					mesh.addVertex(kinect.getWorldCoordinateAt(x, y));
+			if(kinect->getDistanceAt(x, y) > 0) {
+				if (kinect->getWorldCoordinateAt(x, y).z < Zhigh && kinect->getWorldCoordinateAt(x, y).z > Zlow){	
+					mesh.addColor(ofColor(rand1, 0, (kinect->getWorldCoordinateAt(x, y).z*-1) / (Zhigh/255) + 128));
+					mesh.addVertex(kinect->getWorldCoordinateAt(x, y));
 				}
 			}
 		}
@@ -162,13 +163,13 @@ void djMode::drawMeshCloud() {
 }
 
 //--------------------------------------------------------------
-void djMode::exit() {
-	kinect.setCameraTiltAngle(0); // zero the tilt on exit
-	kinect.close();
+void djMode::exit(ofxKinect *kinect) {
+	kinect->setCameraTiltAngle(0); // zero the tilt on exit
+	kinect->close();
 }
 
 //--------------------------------------------------------------
-void djMode::DJkeyPressed (int key) {
+void djMode::DJkeyPressed (ofxKinect *kinect, int key) {
 	switch (key) {
 			
 		case'i':
@@ -181,29 +182,29 @@ void djMode::DJkeyPressed (int key) {
 			bDrawMeshCloud = !bDrawMeshCloud;			break;
 											
 		case 'w':
-			kinect.enableDepthNearValueWhite(!kinect.isDepthNearValueWhite());
+			kinect->enableDepthNearValueWhite(!kinect->isDepthNearValueWhite());
 			break;
 			
 		case 'o':
-			kinect.setCameraTiltAngle(angle); // go back to prev tilt
-			kinect.open();
+			kinect->setCameraTiltAngle(angle); // go back to prev tilt
+			kinect->open();
 			break;
 			
 		case 'c':
-			kinect.setCameraTiltAngle(0); // zero the tilt
-			kinect.close();
+			kinect->setCameraTiltAngle(0); // zero the tilt
+			kinect->close();
 			break;
 			
 		case OF_KEY_UP:
 			angle++;
 			if(angle>30) angle=30;
-			kinect.setCameraTiltAngle(angle);
+			kinect->setCameraTiltAngle(angle);
 			break;
 			
 		case OF_KEY_DOWN:
 			angle--;
 			if(angle<-30) angle=-30;
-			kinect.setCameraTiltAngle(angle);
+			kinect->setCameraTiltAngle(angle);
 			break;
 	}
 }
