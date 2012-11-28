@@ -42,13 +42,15 @@ void testApp::setup(){
 	guiSetup();
 	initRects();
 	ofEnableSmoothing();
-
-	/*-------Alex-------*/
+//				ofEnableAlphaBlending();
+	ofBackground(ccomp5.r,ccomp5.g,ccomp5.b,100);
 	physics.setup();
-	generateColors(ccomp3);
+	vid.setup();
+	//curShade = CT_SOFT;
+	generateColors(CT_SOFT);
 	numParticles = 0;
 	/*-------Jake-------*/
-	DJMODE.setup();
+	//DJMODE.setup();
 	/*------Melissa-----*/
 	Aud.setup();
 }
@@ -60,12 +62,12 @@ void testApp::update(){
 //	audio->addPoint(scaledVol*100);
 	//calculate average volume as a single float instead of per frequency
 	/*-------kinect side displays------*/
-	if(drawDJKinect){
+/*	if(drawDJKinect){
 		DJMODE.update(left, DjDepthSliderLow, DjDepthSliderHigh);
 	}
 	if(drawAudKinect){
 		Aud.update();
-	}
+	}*/
 
 	bd.updateFFT();
 
@@ -76,7 +78,7 @@ void testApp::update(){
 	for(int i=0; i<fft_bins; i++)
 		cVol += bd.magnitude_average[i];
 	cVol/=fft_bins;
-	printf("%f \n", abs(pVol - cVol)*100);
+	//printf("%f \n", abs(pVol - cVol)*100);
 	if(abs(pVol - cVol)*100>1){
 		isChanged = true;
 	}
@@ -89,52 +91,51 @@ void testApp::update(){
 			if (!DJMODE.WheresMyDj){mode = PHYSICS;}
 			break;
 		case AUD:
-			Aud.update();
+			Aud.update(cVol*100);
 			break;
 		default:
 		case PHYSICS:
-			physics.addParticles(numParticles);
 			physics.updateSources(cVol *100, colorGen.getRandom(colors), isChanged);
 			physics.update();
-			break;
+			vid.update(mouseX, mouseY);
 	}
 }
 
 //--------------------------------------------------------------
 void testApp::draw(){
-	ofBackground(ccomp5);
-
-
+	
+	ofSetBackgroundAuto(true);
 	//sound
-	//if(drawSound){
-		drawVolGraphs();
+	if(drawSound){
+	//	drawVolGraphs();
 		drawBeatBins();
-	//}
-
+		drawColorSwatches(guiWidth+10, 10);
+}
 	//modes
 	if(drawDisplay){
 		switch(mode){
 		case DJ:
-			DJMODE.draw();
+			//DJMODE.draw();
 			break;
 		case AUD:
 			Aud.draw();
+				Aud.draw();
 			break;
-		case PHYSICS:{
+		case PHYSICS:
+			{
 			physics.render();
-			}
 			break;
 		case VID:
-			{
-			}
+			ofSetBackgroundAuto(false);
+			ofSetColor(0,0,0, (int)ofRandom(10,30));
+			ofRect(0,0,ofGetScreenWidth(), ofGetScreenHeight());
+			vid.draw(mouseX, mouseY);
 			break;
 		default:
-			{
 				ofPushStyle();
 				ofSetColor(white);
 				ofRect(displayRect);
 				ofPopStyle();
-			}
 			break;
 		}
 	}
@@ -144,15 +145,17 @@ void testApp::draw(){
 		ofRect(djRect);
 		ofTranslate(djRect.x, djRect.y);
 		ofPushStyle();
-		DJMODE.kinect.drawDepth(0, 0, djRect.width, djRect.height);
-		DJMODE.kinect.draw(0, 0, djRect.width, djRect.height);
+		//DJMODE.kinect.drawDepth(0, 0, djRect.width, djRect.height);
+		//DJMODE.kinect.draw(0, 0, djRect.width, djRect.height);
 		ofPopStyle();
 		ofPopMatrix();
 	}
 	if(drawAudKinect){
-		ofPushMatrix();
-		ofRect(audRect);
-		ofTranslate(audRect.x, audRect.y);
+	//	ofPushStyle();
+	//	ofSetColor(white);
+	//	ofRect(audRect);
+	//  ofPopStyle();
+		
 		ofPushStyle();
 		Aud.kinect.drawDepth(0, 0, audRect.width, audRect.height);
 		Aud.kinect.draw(0, 0, audRect.width, audRect.height);
@@ -160,6 +163,8 @@ void testApp::draw(){
 		ofPopMatrix();
 	}
 
+		printf("i hit the fucking key");
+		DJMODE.DJkeyPressed(key);
 
 }
 
@@ -173,7 +178,7 @@ void testApp::drawBeatBins(){
 	float rectHeight = 150;
 	float spacer = 16;
 	ofPushMatrix();
-	ofTranslate(ofGetWidth()- (rectWidth+spacer),ofGetHeight()-(rectHeight*3 + spacer*3), 0);
+	ofTranslate(ofGetWidth()- (rectWidth+spacer),ofGetHeight()-(rectHeight*1.5 + spacer), 0);
 	ofSetColor(white);
 	bd.drawSubbands();
 	//ofTranslate(0, rectHeight + spacer, 0);
@@ -243,7 +248,9 @@ void testApp::audioIn(float *input, int bufferSize, int nChannels){
 
 	/*------Beat Detection-------*/
 	bd.audioReceived(input, bufferSize);
-}
+	}
+	
+
 
 void testApp::initRects(){
 	float spacer = 16;
@@ -335,6 +342,8 @@ void testApp::guiColors(ofxUIWidget *w){
 	w->setColorFillHighlight(ccomp4);
 	w->setColorOutline(ccomp2);*/
 }
+
+}
 void testApp::guiSetup(){
 
     float dim = 16;
@@ -382,10 +391,31 @@ void testApp::guiSetup(){
     ofAddListener(gui->newGUIEvent,this,&testApp::guiEvent);
 }
 //--------------------------------------------------------------
-void testApp::generateColors(ofColor seed){
-	colors = colorGen.createRangeFromLeftSplitComplementary(seed);
-}
 
+/*-------------------------------------------------------------*
+Color Generation
+options: light,dark,bright,weak,neutral,fresh,soft,hard,warm,cool,intense
+ *-------------------------------------------------------------*/
+
+void testApp::generateColors(ColourShade cs){
+	colors.clear();
+	for(int i=0; i<100; i++){
+		colors.push_back(colorGen.getColor(50, colorGen.getColourConstraints(cs)));
+	}
+}
+void testApp::drawColorSwatches(int x, int y){
+	ofPushMatrix();
+	ofPushStyle();
+	ofTranslate(x,y,0);
+	for(int i=0; i<colors.size(); i++){
+		ofSetColor(colors[i]);
+		ofRect(i*4,0,0,3,10);
+	}
+	ofSetColor(white);
+	ofDrawBitmapString(curShade.name, colors.size()*4 + 20, 10, 0);
+	ofPopStyle();
+	ofPopMatrix();
+}
 void testApp::keyPressed(int key){
 	if(drawDJ){
 		DJMODE.DJkeyPressed(key);
@@ -398,11 +428,10 @@ void testApp::keyPressed(int key){
 		soundStream.stop();
 	}
 	if(key == ' '){
-	//	ofColor r = ofColor(ofRandom(0,255),ofRandom(0,255),ofRandom(0,255));
-		ofColor r = colorGen.getColor(10, colorGen.getColourConstraints(CT_FRESH));
-		r.setBrightness(100);
-		generateColors(r);
-//		colorGen.
+		//change the color range
+		ColourShade randomShade =  (ColourShade) ((int)(ofRandom(0,10)));
+		curShade = colorGen.getColourConstraints(randomShade);
+		generateColors(randomShade);
 	}
 }
 
@@ -413,7 +442,8 @@ void testApp::keyReleased(int key){
 
 //--------------------------------------------------------------
 void testApp::mouseMoved(int x, int y ){
-
+	mouseX = x;
+	mouseY= y;
 }
 
 //--------------------------------------------------------------
