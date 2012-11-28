@@ -110,7 +110,7 @@ void testApp::draw(){
 	//	drawVolGraphs();
 		drawBeatBins();
 		drawColorSwatches(guiWidth+10, 10);
-}
+	}
 	//modes
 	if(drawDisplay){
 		switch(mode){
@@ -122,7 +122,6 @@ void testApp::draw(){
 				Aud.draw();
 			break;
 		case PHYSICS:
-			{
 			physics.render();
 			break;
 		case VID:
@@ -164,7 +163,7 @@ void testApp::draw(){
 	}
 
 		printf("i hit the fucking key");
-		DJMODE.DJkeyPressed(key);
+		//DJMODE.DJkeyPressed(key);
 
 }
 
@@ -343,7 +342,7 @@ void testApp::guiColors(ofxUIWidget *w){
 	w->setColorOutline(ccomp2);*/
 }
 
-}
+
 void testApp::guiSetup(){
 
     float dim = 16;
