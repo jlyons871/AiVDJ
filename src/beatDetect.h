@@ -13,6 +13,15 @@
 
 using namespace std;
 
+/*
+	sub bass : 0 > 100hz
+	mid bass : 80 > 500hz
+	mid range: 400 > 2khz
+	upper mid: 1k > 6khz
+	high freq: 4k > 12khz
+	Very high freq: 10k > 20khz and above
+*/
+
 class beatDetect
 {
 protected:
@@ -38,11 +47,16 @@ public:
     // FFT functions
 	void initFFT();
     void updateFFT(); //finished
+
+	float curVol, pVol;
+	float getVolume();
+	bool diffVol(float thresh);
     //void updateFFT(float* in_fft, int infft_size);
     void drawSmoothedFFT();
 	void drawAverageMagnitude();
     void drawSubbands();
 	void drawBeats();
+	
 
     void audioReceived(float* input, int bufferSize); //finished
     
