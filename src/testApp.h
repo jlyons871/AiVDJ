@@ -44,6 +44,7 @@ class testApp : public ofBaseApp{
 		void guiEvent(ofxUIEventArgs &e);
 		void initRects();
 		void changeColorScheme(std::string d);
+		int externalBpm();
 		void exit();
 
 		ofxUICanvas *gui;

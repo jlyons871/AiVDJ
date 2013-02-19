@@ -39,6 +39,7 @@ void testApp::setup(){
 
 	/*--------GUI-----------*/
 	bGui = true;
+
 	drawDJKinect = false;
 	drawAudKinect = false;
 	drawDisplay = true;
@@ -60,10 +61,12 @@ void testApp::setup(){
 	/*-------Alex-------*/
 	ofEnableAlphaBlending();
 	ofBackground(80);
-	vid.setup();
-	physics.setup(100);
+	//vid.setup();
+	//physics.setup(100);
 	
+
 	generateColors(CT_WEAK);
+
 	numParticles = 9000;
 	/*-------Jake-------*/
 	//DJMODE.setup();
@@ -128,11 +131,29 @@ void testApp::update(){
 			break;
 		default:
 		case PHYSICS:
+			DJMODE.exit();
+			Aud.exit();
+			if (!setPhy) {
+				setPhy = true;
+				physics.setup();
+			}
 			ofSetVerticalSync(true);
+			//physics.addParticles(numParticles);
+			physics.updateSources(cVol *100, colorGen.getRandom(colors), isChanged, bd.isKick(), bd.isSnare());
 			physics.update(bd, bpm);
 			break;
 
 		case VID:
+			
+			DJMODE.exit();
+			Aud.exit();
+			if (!setVid) {
+				setVid = true;
+				vid.setup();
+			}
+			if(bd.isKick()){
+				vidX = (int) ofRandom(0, ofGetScreenWidth()-100);
+				vidY = (int) ofRandom(0, ofGetScreenHeight()-100);}
 			ofSetVerticalSync(false);
 			vid.update(mouseX, mouseY, bpm, bd);
 			break;
@@ -198,6 +219,9 @@ void testApp::draw(){
 		ofPopStyle();
 		ofPopMatrix(); */
 	}
+
+	
+
 }
 /*--------------------------------------------------*
 BPM tracking
@@ -262,6 +286,7 @@ void testApp::drawBeatBins(){
 	string info = "FPS: "+ofToString(ofGetFrameRate(), 0) + "\n";
 	ofDrawBitmapString(info,0,spacer);
 	ofDrawBitmapString("VOL: " + ofToString(bd.getVolume()) + "\n",0,spacer*2);
+
 	ofPopMatrix();
 
 	ofTranslate(0,rectHeight/2+spacer*2,0);
@@ -512,6 +537,55 @@ void testApp::guiSetup(){
 	w = gui->addWidgetSouthOf(new ofxUIToggle("beat debug", drawSound, dim, dim),"Volume");guiColors(w);
     ofAddListener(gui->newGUIEvent,this,&testApp::guiEvent);
 }
+/*-------------------------------------------------------------*
+Color Generation
+options: light,dark,bright,weak,neutral,fresh,soft,hard,warm,cool,intense
+ *-------------------------------------------------------------*/
+
+void testApp::generateColors(ColourShade cs){
+	colors.clear();
+	for(int i=0; i<100; i++){
+		colors.push_back(colorGen.getColor(50, colorGen.getColourConstraints(cs)));
+	}
+}
+void testApp::drawColorSwatches(int x, int y){
+	ofPushMatrix();
+	ofPushStyle();
+	ofTranslate(x,y,0);
+	for(int i=0; i<colors.size(); i++){
+		ofSetColor(colors[i]);
+		ofRect(i*4,0,0,3,10);
+	}
+	ofSetColor(white);
+	ofDrawBitmapString(curShade.name, colors.size()*4 + 20, 10, 0);
+	ofPopStyle();
+	ofPopMatrix();
+}
+int testApp::externalBpm(){
+	using namespace std;
+	ifstream f;
+	char input[10];
+	f.open("avg_bpm.txt");
+	while (!f.eof()){
+		f >> input;
+	}
+	f.close();
+	return atoi(input);
+}
+
+ColourShade testApp::IntelliColor(){
+	ColourShade colors[10] = {CT_LIGHT,CT_WEAK,CT_SOFT, CT_COOL, CT_NEUTRAL, CT_WARM,CT_HARD,CT_INTENSE,CT_BRIGHT,CT_FRESH}; //not using CT_DARK
+	if (AvgSetListBPM < 60) return colors[0];
+	else if (AvgSetListBPM < 70) return colors[1];
+	else if (AvgSetListBPM < 80) return colors[2];
+	else if (AvgSetListBPM < 90) return colors[3];
+	else if (AvgSetListBPM < 100) return colors[4];
+	else if (AvgSetListBPM < 110) return colors[5];
+	else if (AvgSetListBPM < 120) return colors[6];
+	else if (AvgSetListBPM < 130) return colors[7];
+	else if (AvgSetListBPM < 140) return colors[8];
+	else return colors[9];
+}
 void testApp::keyReleased(int key){
 
 }
@@ -534,10 +608,6 @@ void testApp::mousePressed(int x, int y, int button){
 //--------------------------------------------------------------
 void testApp::mouseReleased(int x, int y, int button){
 	ofRectangle guiRect = ofRectangle(0,0,guiWidth, guiHeight);
-	if(mode == PHYSICS){
-	//	if(!guiRect.inside(ofVec2f(x,y)))
-			//physics.mousePressed( sourceType, ofVec3f(x,y,0));
-	}
 }
 
 void testApp::exit()
